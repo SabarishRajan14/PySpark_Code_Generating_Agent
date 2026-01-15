@@ -1,0 +1,9 @@
+numpy
+pandas
+pyspark
+scikit-learn
+sentence-transformers
+langchain
+langchain-community
+langchain_groq
+langchain-core
