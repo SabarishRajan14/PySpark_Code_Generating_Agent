@@ -1,9 +1,10 @@
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 from pyspark.sql import DataFrame, SparkSession
 
 spark = SparkSession.builder.appName('Code_generation').getOrCreate()
 
-def generate_code(df : DataFrame, metadata: dict,quality_rules: dict, error: str, llm: ChatGroq):
+def generate_code(df : DataFrame, metadata: dict,quality_rules: dict, error: str, llm: ChatGoogleGenerativeAI):
     
     print('\n Generating Code...')
 

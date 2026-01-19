@@ -62,6 +62,7 @@ while max_tries < 6:
 
     if start not in code or end not in code:
         error = 'ValueError: Executable block not found'
+        print(f'Code block not found : {error}')
         continue
 
     code_string = code.split(start)[1].split(end)[0].strip()
@@ -69,8 +70,8 @@ while max_tries < 6:
     result = execute_generated_code(rules=quality_rules, sample_df= df.limit(20), metadata = initial_metadata.model_dump_json(indent = 2), code_string = code_string)
 
     if result['success'] == False:
-        print(f'\n 🛑Error (attempt {max_tries})...Retrying ...\n')
         error = result['stderr']
+        print(f'\n 🛑Error (attempt {max_tries}) \n Error : {error}\n...Retrying ...\n')
         max_tries += 1
     else:
         print('\n ✅Success: \n')
