@@ -5,23 +5,33 @@ from code_generation import generate_code
 from running_generated_code import execute_generated_code
 from pathlib import Path
 from langchain_groq import ChatGroq
+from langchain_google_genai import ChatGoogleGenerativeAI
 import os
-import re
+from llm_limiter import groq_rate_limiter
 from dotenv import load_dotenv
 
 load_dotenv()
 
 groq_api = os.getenv('GROQ_KEY')
-
+gemini_api = os.getenv('GEMINI_KEY')
 try:
-    llm = ChatGroq(
+    Groq = ChatGroq(
         model = 'llama-3.1-8b-instant',
         temperature = 0.0,
         api_key = groq_api
     )
-    print('LLM Loaded.')
+    print('Groq Loaded.')
 except Exception as e:
     raise RuntimeError(f'Error loading LLM:{e}')
+
+try: 
+    Gemini = ChatGoogleGenerativeAI(
+        model = 'gemini-3-flash-preview',
+        temperature = 0.0,
+        api_key = gemini_api
+    )
+except Exception as e:
+    raise RuntimeError('Error loading Gemini')
 
 spark = SparkSession.builder.appName('main').getOrCreate()
 path = "C:/Users/aksme/Desktop/SAS_trail/PySpark_Code_Generating_Agent/Fake_data.csv"
@@ -29,11 +39,49 @@ df = spark.read.csv(path, header = True)
 
 file_name = Path(path).name
 
-initial_metadata = generate_metadata_using_llm(df=df, file_name = file_name, llm = llm)
+initial_metadata = generate_metadata_using_llm(df=df, file_name = file_name, llm = Groq)
 
-quality_rules = rule_generation(df = df, metadata=initial_metadata.model_dump_json(indent = 2), llm = llm)
+quality_rules = rule_generation(df = df, metadata=initial_metadata.model_dump_json(indent = 2), llm = Groq)
 
-code = generate_code(df = df, metadata=initial_metadata.model_dump_json(indent = 2), quality_rules=quality_rules, llm = llm)
+max_tries = 1
+error = None
+while max_tries < 6:
+
+    #groq_rate_limiter()
+
+    code = generate_code(
+        df = df, 
+        metadata=initial_metadata.model_dump_json(indent = 2), 
+        quality_rules=quality_rules, 
+        error=error,
+        llm = Gemini
+    )
+
+    start = "<CODE>"
+    end = "</CODE>"
+
+    if start not in code or end not in code:
+        error = 'ValueError: Executable block not found'
+        continue
+
+    code_string = code.split(start)[1].split(end)[0].strip()
+
+    result = execute_generated_code(rules=quality_rules, sample_df= df.limit(20), metadata = initial_metadata.model_dump_json(indent = 2), code_string = code_string)
+
+    if result['success'] == False:
+        print(f'\n 🛑Error (attempt {max_tries})...Retrying ...\n')
+        error = result['stderr']
+        max_tries += 1
+    else:
+        print('\n ✅Success: \n')
+        print(result, "\n")
+        break
+
+    if max_tries >5:
+        raise RuntimeError('Exhausted Max Tries.')
+
+
+
 
 #print(f'\n Initial metadata:\n {initial_metadata.model_dump_json(indent = 2)}\n')
 
@@ -41,17 +89,5 @@ code = generate_code(df = df, metadata=initial_metadata.model_dump_json(indent =
 
 #print(f'💻The generated code is 💻: \n {code}')
 
-print('\n Checking if the code is executable or not...')
 
 
-start = "<CODE>"
-end = "</CODE>"
-
-if start not in code or end not in code:
-    raise ValueError('Executable block not found')
-
-code_string = code.split(start)[1].split(end)[0].strip()
-
-result = execute_generated_code(rules=quality_rules, sample_df= df.limit(20), metadata = initial_metadata.model_dump_json(indent = 2), code_string = code_string)
-print(f'\n Result of running the program:\n')
-print(result)

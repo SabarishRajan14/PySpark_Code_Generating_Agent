@@ -191,7 +191,7 @@ Rulse:
 """
 def generate_metadata_using_llm(df: DataFrame, file_name : str, llm: ChatGroq, max_tries = 5):
     
-    print('Generating Metadata...')
+    print('\n Generating Metadata...')
     try:
         print('\rGetting Raw Metadata...', end = "", flush = True)
         raw_metadata = generate_raw_metadata(df=df, file_name=file_name, llm = llm) 

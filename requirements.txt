@@ -6,4 +6,5 @@ sentence-transformers
 langchain
 langchain-community
 langchain_groq
+langchain_google_genai
 langchain-core
