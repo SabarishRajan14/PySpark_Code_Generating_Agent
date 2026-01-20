@@ -72,15 +72,34 @@ Generate a modular PySpark script that applies the provided Data Quality rules t
 - Return **only** the Python code enclosed between the markers below.
 - Do NOT include explanations or markdown.
 
-***Return only the Python code block between the markers (IMPORTANT)***
+***You MUST return your response in the following exact format.
+Do NOT include any text before or after.***
+
 <CODE>
-...
+# valid executable Python code only
 </CODE>
+
+If you include anything outside these tags, the response is invalid.
+
 
 '''
     
-    code = llm.invoke(prompt)
+    llm_answer = llm.invoke(prompt)
 
-    print('✅✅ Code Generated ✅✅')
+    raw_output = llm_answer.content
 
-    return code.content
+    if isinstance(raw_output, str):
+        code = raw_output
+        print('✅✅ Code Generated ✅✅')
+    
+    elif isinstance(raw_output, list):
+        code = "".join(
+            part.get("text", "") for part in raw_output if isinstance(part, dict)
+        )
+        print('✅✅ Code Generated ✅✅')
+    else:
+        raise TypeError(f'Unexpected content type : {type(raw_output)}')
+
+    
+
+    return str(code)

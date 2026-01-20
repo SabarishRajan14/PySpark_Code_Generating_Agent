@@ -3,8 +3,10 @@ pandas
 pyspark
 scikit-learn
 sentence-transformers
+transformers
 langchain
 langchain-community
 langchain_groq
+langchain-deepseek
 langchain_google_genai
 langchain-core

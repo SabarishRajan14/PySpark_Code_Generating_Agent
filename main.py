@@ -30,6 +30,7 @@ try:
         temperature = 0.0,
         api_key = gemini_api
     )
+    print('Gemini Loaded.')
 except Exception as e:
     raise RuntimeError('Error loading Gemini')
 
@@ -57,29 +58,32 @@ while max_tries < 6:
         llm = Gemini
     )
 
+
+    print(f'Generated code :\n {code}')
     start = "<CODE>"
     end = "</CODE>"
 
     if start not in code or end not in code:
         error = 'ValueError: Executable block not found'
-        print(f'Code block not found : {error}')
+        print(f'\n 🛑Error (attempt {max_tries}) \n Error : {error}\n...Retrying ...\n')
+        max_tries += 1
         continue
 
     code_string = code.split(start)[1].split(end)[0].strip()
 
-    result = execute_generated_code(rules=quality_rules, sample_df= df.limit(20), metadata = initial_metadata.model_dump_json(indent = 2), code_string = code_string)
+    result = execute_generated_code(spark = spark, rules=quality_rules, sample_df= df.limit(20), metadata = initial_metadata.model_dump_json(indent = 2), code_string = code_string)
 
     if result['success'] == False:
-        error = result['stderr']
+        error = result['error']
         print(f'\n 🛑Error (attempt {max_tries}) \n Error : {error}\n...Retrying ...\n')
         max_tries += 1
     else:
         print('\n ✅Success: \n')
-        print(result, "\n")
+        print(result["output"], "\n")
         break
 
     if max_tries >5:
-        raise RuntimeError('Exhausted Max Tries.')
+        raise RuntimeError('🛑🛑🛑🛑🛑Exhausted Max Tries.🛑🛑🛑🛑🛑')
 
 
 
