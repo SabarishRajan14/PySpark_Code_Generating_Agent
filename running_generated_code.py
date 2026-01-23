@@ -16,7 +16,8 @@ def execute_generated_code(spark, rules, sample_df, metadata, code_string):
         "spark" : spark,
         "df" : sample_df,
         "metadata" : metadata,
-        "quality_rules" : rules
+        "quality_rules" : rules,
+        "__name__" : "__main__"
     }
 
     try:

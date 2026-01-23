@@ -3,11 +3,10 @@ from langchain_groq import ChatGroq
 from langchain_classic.schema import HumanMessage, SystemMessage
 import json
 
-spark = SparkSession.builder.appName('qualityrulesgen').getOrCreate()
 
 
 
-def rule_generation(df: DataFrame, metadata: dict, llm: ChatGroq):
+def rule_generation(spark : SparkSession, df: DataFrame, metadata: dict, llm: ChatGroq):
     print('\n Generating Data Quality Rules...')
 
     # 1. Get Schema information so LLM knows column types (String, Long, etc.)

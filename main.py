@@ -7,7 +7,6 @@ from pathlib import Path
 from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
 import os
-from llm_limiter import groq_rate_limiter
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -40,9 +39,9 @@ df = spark.read.csv(path, header = True)
 
 file_name = Path(path).name
 
-initial_metadata = generate_metadata_using_llm(df=df, file_name = file_name, llm = Groq)
+initial_metadata = generate_metadata_using_llm(spark = spark, df=df, file_name = file_name, llm = Groq)
 
-quality_rules = rule_generation(df = df, metadata=initial_metadata.model_dump_json(indent = 2), llm = Groq)
+quality_rules = rule_generation(spark=spark, df = df, metadata=initial_metadata.model_dump_json(indent = 2), llm = Groq)
 
 max_tries = 1
 error = None
@@ -54,8 +53,8 @@ while max_tries < 6:
         df = df, 
         metadata=initial_metadata.model_dump_json(indent = 2), 
         quality_rules=quality_rules, 
-        error=error,
-        llm = Gemini
+        error=error
+        #llm = Gemini
     )
 
 

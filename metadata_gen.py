@@ -27,8 +27,6 @@ class MetadataResponse(BaseModel):
     dataset_metadata: Metadata
     columns: List[ColumnMetadata]
 
-spark = SparkSession.builder.appName('metadata_generation').getOrCreate()
-
 
 
 metadata_format = '''
@@ -189,8 +187,8 @@ Rulse:
     response = llm.with_structured_output(MetadataResponse).invoke(fix_prompt)
     return response.model_dump()
 """
-def generate_metadata_using_llm(df: DataFrame, file_name : str, llm: ChatGroq, max_tries = 5):
-    
+def generate_metadata_using_llm(spark : SparkSession, df: DataFrame, file_name : str, llm: ChatGroq, max_tries = 5):
+
     print('\n Generating Metadata...')
     try:
         print('\rGetting Raw Metadata...', end = "", flush = True)

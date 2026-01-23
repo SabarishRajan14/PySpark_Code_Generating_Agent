@@ -1,10 +1,19 @@
 from langchain_groq import ChatGroq
 from langchain_google_genai import ChatGoogleGenerativeAI
+from transformers import AutoModelForCausalLM
 from pyspark.sql import DataFrame, SparkSession
+
+try:
+    llm = AutoModelForCausalLM.from_pretrained(
+        "deepseek-ai/deepseek-coder-6.7b-base"
+    )
+    print('✅Deepseek Coder loaded')
+except Exception as e:
+    raise RuntimeError(f'🛑🛑🛑Error loading DeepSeek Coding model \n:{e}')
 
 spark = SparkSession.builder.appName('Code_generation').getOrCreate()
 
-def generate_code(df : DataFrame, metadata: dict,quality_rules: dict, error: str, llm: ChatGoogleGenerativeAI):
+def generate_code(df : DataFrame, metadata: dict,quality_rules: dict, error: str ,llm = llm):
     
     print('\n Generating Code...')
 
